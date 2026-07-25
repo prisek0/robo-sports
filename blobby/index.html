@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RUST &amp; RALLY — Robo Blobby Volley</title>
+<link rel="stylesheet" href="../shared/style.css">
+</head>
+<body>
+
+<div class="machine">
+
+  <div class="nameplate">
+    <span class="sub">Sector 7</span>
+    <h1>Rust &amp; Rally</h1>
+    <span class="sub">Automaton Volley Co.</span>
+  </div>
+
+  <div class="bezel">
+    <canvas id="screen" class="screen" width="800" height="600"></canvas>
+
+    <!-- ---------------- MENU ---------------- -->
+    <div class="overlay" id="menu">
+      <div class="panel">
+        <div class="tag">Blobby Volley Protocol</div>
+        <h2>Rust &amp; Rally</h2>
+        <p>
+          Two salvaged automatons volley a brass pressure-orb over a scrap-iron net
+          in the flooded ruins of Sector 7. Original Blobby rules: <b>three touches</b>
+          per side, <b>rally scoring</b> — every rally is a point — first to
+          <b>15</b>, win by two.
+        </p>
+
+        <span class="opt-label">Opponent</span>
+        <div class="opt-group" id="optMode">
+          <button class="btn" data-mode="cpu" aria-pressed="true">Vs. Machine</button>
+          <button class="btn" data-mode="human" aria-pressed="false">Two Riveters</button>
+        </div>
+
+        <span class="opt-label">Governor Setting</span>
+        <div class="opt-group" id="optDiff">
+          <button class="btn ghost" data-diff="0" aria-pressed="false">Creaky</button>
+          <button class="btn ghost" data-diff="1" aria-pressed="true">Oiled</button>
+          <button class="btn ghost" data-diff="2" aria-pressed="false">Overclocked</button>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn" id="btnStart">Fire the Boiler</button>
+        </div>
+        <div class="keyhint">P — pause &nbsp;•&nbsp; M — mute &nbsp;•&nbsp; R — restart</div>
+      </div>
+    </div>
+
+    <!-- ---------------- PAUSE ---------------- -->
+    <div class="overlay" id="pause" hidden>
+      <div class="panel">
+        <div class="tag">Boiler Cooling</div>
+        <h2>Paused</h2>
+        <div class="btn-row">
+          <button class="btn" id="btnResume">Resume</button>
+          <button class="btn ghost" id="btnQuit">Abandon Match</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------------- GAME OVER ---------------- -->
+    <div class="overlay" id="over" hidden>
+      <div class="panel">
+        <div class="tag" id="overTag">Match Concluded</div>
+        <h2 class="badge-win" id="overTitle">Victory</h2>
+        <p id="overText"></p>
+        <div class="btn-row">
+          <button class="btn" id="btnAgain">Rematch</button>
+          <button class="btn ghost" id="btnMenu">Main Workshop</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="ctl-card">
+      <span class="who p1">Rusty Unit</span>
+      <span><kbd>A</kbd><kbd>D</kbd></span><span class="lbl">Move</span>
+      <span><kbd>W</kbd></span><span class="lbl">Jump</span>
+    </div>
+    <div class="ctl-card">
+      <span class="who p2">Oxy Unit</span>
+      <span><kbd>←</kbd><kbd>→</kbd></span><span class="lbl">Move</span>
+      <span><kbd>↑</kbd></span><span class="lbl">Jump</span>
+    </div>
+    <div class="ctl-card">
+      <span class="lbl">Serve</span><span><kbd>Move</kbd></span>
+      <span class="lbl">Menu</span><span><kbd>Esc</kbd></span>
+    </div>
+  </div>
+
+</div>
+
+<script src="../shared/art.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

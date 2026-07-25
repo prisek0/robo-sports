@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ROBO SPORTS — Sector 7 Athletic Works</title>
+<link rel="stylesheet" href="shared/style.css">
+</head>
+<body class="page-scroll">
+
+<div class="hub">
+
+  <div class="nameplate">
+    <span class="sub">Est. 1887</span>
+    <h1>Robo Sports</h1>
+    <span class="sub">Sector 7 Athletic Works</span>
+  </div>
+
+  <div class="cards">
+    <a class="card" href="blobby/index.html">
+      <canvas id="pv1" width="660" height="380"></canvas>
+      <div class="body">
+        <div class="kicker">Blobby Volley Protocol</div>
+        <h3>Rust &amp; Rally</h3>
+        <p>Two automatons volley a brass pressure-orb over a scrap-iron net.
+           Three touches a side, side-out scoring, first to fifteen.</p>
+      </div>
+    </a>
+
+    <a class="card" href="basket/index.html">
+      <canvas id="pv2" width="660" height="380"></canvas>
+      <div class="body">
+        <div class="kicker">Basket Random Protocol</div>
+        <h3>Scrapyard Slam</h3>
+        <p>Swing an iron arm to fling the orb through the far ring — while the
+           machine re-rolls gravity, ball, court and chassis every round.</p>
+      </div>
+    </a>
+  </div>
+
+  <div class="keyhint">Two players at one keyboard &nbsp;•&nbsp; WASD versus the arrow keys</div>
+</div>
+
+<script src="shared/art.js"></script>
+<script>
+(function () {
+  const A = window.Art, TAU = A.TAU;
+
+  function preview(id, seed, draw) {
+    const cv = document.getElementById(id);
+    const ctx = cv.getContext('2d');
+    const W = cv.width, H = cv.height, GY = H - 62;
+    const city = new A.CityBackdrop(W, H, GY, seed);
+    let t = 0;
+    (function loop() {
+      t += 1 / 60;
+      city.update(1 / 60);
+      city.draw(ctx, Math.sin(t * 0.4));
+      city.drawGround(ctx);
+      draw(ctx, t, W, H, GY);
+      const vg = ctx.createLinearGradient(0, 0, 0, H);
+      vg.addColorStop(0, 'rgba(0,0,0,.25)');
+      vg.addColorStop(0.6, 'rgba(0,0,0,0)');
+      vg.addColorStop(1, 'rgba(0,0,0,.5)');
+      ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+      requestAnimationFrame(loop);
+    })();
+  }
+
+  function orb(ctx, x, y, r, rot) {
+    ctx.save();
+    ctx.translate(x, y); ctx.rotate(rot);
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU);
+    const g = ctx.createRadialGradient(-r * .35, -r * .4, r * .1, 0, 0, r);
+    g.addColorStop(0, '#ffeeb8'); g.addColorStop(.35, '#d9b04a');
+    g.addColorStop(.72, '#8a6418'); g.addColorStop(1, '#3d2a08');
+    ctx.fillStyle = g; ctx.fill();
+    ctx.strokeStyle = '#241705'; ctx.lineWidth = 1.6; ctx.stroke();
+    ctx.strokeStyle = 'rgba(40,26,6,.55)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(0, 0, r, r * .34, 0, 0, TAU); ctx.stroke();
+    A.rivetRing(ctx, 0, 0, r * .78, 8, 1.6, rot * .5);
+    ctx.restore();
+  }
+
+  function blob(ctx, x, gy, tint, eyeCol, look) {
+    const R = 22, top = gy - 78;
+    ctx.save();
+    ctx.globalAlpha = .38; ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.ellipse(x, gy + 5, 30, 8, 0, 0, TAU); ctx.fill();
+    ctx.restore();
+    ctx.save();
+    ctx.beginPath(); ctx.ellipse(x, gy - 6, 29, 12, 0, 0, TAU);
+    ctx.fillStyle = A.brassGrad(ctx, x - 29, gy - 18, x + 29, gy + 6, 'iron'); ctx.fill();
+    A.roundRect(ctx, x - R, top, R * 2, gy - top - 4, R);
+    ctx.fillStyle = A.brassGrad(ctx, x - R, top, x + R, gy, tint); ctx.fill();
+    ctx.strokeStyle = 'rgba(20,12,4,.9)'; ctx.lineWidth = 2; ctx.stroke();
+    A.roundRect(ctx, x - 19, top + 12, 38, 16, 7);
+    ctx.fillStyle = '#0a0806'; ctx.fill();
+    ctx.beginPath(); ctx.arc(x + look * 6, top + 20, 5.5, 0, TAU);
+    ctx.fillStyle = eyeCol; ctx.shadowColor = eyeCol; ctx.shadowBlur = 14; ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#8c6f28'; ctx.lineWidth = 2;
+    A.roundRect(ctx, x - 19, top + 12, 38, 16, 7); ctx.stroke();
+    ctx.strokeStyle = '#9a8250'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x + 10, top + 2); ctx.quadraticCurveTo(x + 14, top - 8, x + 20, top - 14); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x + 20, top - 14, 3, 0, TAU);
+    ctx.fillStyle = eyeCol; ctx.shadowColor = eyeCol; ctx.shadowBlur = 10; ctx.fill();
+    ctx.restore();
+  }
+
+  /* ---- card 1: a rally over the net ---- */
+  preview('pv1', 20250725, function (ctx, t, W, H, GY) {
+    const netX = W / 2, netTop = GY - 150;
+    const k = (t * 0.75) % 2;
+    const bx = k < 1 ? 160 + k * (W - 320) : (W - 160) - (k - 1) * (W - 320);
+    const by = GY - 60 - Math.sin((k % 1) * Math.PI) * 190;
+    A.pipe(ctx, netX, netTop, netX, GY + 12, 15, 'iron');
+    ctx.strokeStyle = 'rgba(28,24,20,.85)'; ctx.lineWidth = 1.2;
+    for (let i = -1; i <= 1; i++) {
+      ctx.beginPath(); ctx.moveTo(netX + i * 9, netTop); ctx.lineTo(netX + i * 9, GY + 8); ctx.stroke();
+    }
+    for (let y = netTop; y < GY + 8; y += 14) {
+      ctx.beginPath(); ctx.moveTo(netX - 10, y); ctx.lineTo(netX + 10, y); ctx.stroke();
+    }
+    A.gear(ctx, netX, netTop, 15, 9, t * 0.4, null);
+    blob(ctx, 150, GY, 'copper', '#ffb45a', bx < netX ? 1 : .3);
+    blob(ctx, W - 150, GY, 'verdigris', '#79e6d4', bx > netX ? -1 : -.3);
+    orb(ctx, bx, by, 20, t * 2);
+  });
+
+  /* ---- card 2: a shot at the ring ---- */
+  preview('pv2', 77123, function (ctx, t, W, H, GY) {
+    const hy = GY - 165, len = 78;
+    // rim on the right
+    A.roundRect(ctx, W - 30, hy - 60, 12, 74, 3);
+    ctx.fillStyle = A.brassGrad(ctx, W - 30, hy - 60, W - 18, hy + 14, 'iron'); ctx.fill();
+    ctx.strokeStyle = '#120d08'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.strokeStyle = 'rgba(216,198,160,.5)'; ctx.lineWidth = 1.2;
+    for (let i = 0; i <= 6; i++) {
+      const x0 = (W - 30) - len * (i / 6);
+      ctx.beginPath();
+      ctx.moveTo(x0, hy);
+      ctx.quadraticCurveTo(x0 + (W - 60 - x0) * .3, hy + 22, (W - 30) - len * .35 * (1 - i / 12), hy + 36);
+      ctx.stroke();
+    }
+    A.pipe(ctx, W - 30, hy, W - 30 - len, hy, 8, null);
+    const k = (t * 0.55) % 1;
+    const bx = 300 + k * (W - 380);
+    const by = GY - 40 - Math.sin(k * Math.PI * 0.92) * 230;
+    blob(ctx, 170, GY, 'copper', '#ffb45a', 1);
+    orb(ctx, bx, by, 18, t * 3);
+  });
+})();
+</script>
+</body>
+</html>
