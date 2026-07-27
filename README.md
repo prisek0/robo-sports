@@ -13,7 +13,13 @@ shared/style.css      steampunk chrome (brass plates, rivets, gauges)
 shared/art.js         city backdrop, brass widgets, particles, input, audio
 blobby/               game 1 — Rust & Rally
 basket/               game 2 — Scrapyard Slam
+tests/                headless checks — node tests/run.js
+CLAUDE.md             working notes and constraints for contributors
 ```
+
+Run the checks with `node tests/run.js` (no install required). They boot each
+game against a stubbed canvas and DOM, play ~11 simulated minutes, and assert
+the Blobby physics still hit the original's exact design targets.
 
 ---
 
