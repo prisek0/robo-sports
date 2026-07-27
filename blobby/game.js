@@ -948,14 +948,19 @@
   document.getElementById('btnResume').addEventListener('click', () => {
     show(el.pause, false); paused = false;
   });
-  document.getElementById('btnQuit').addEventListener('click', () => {
-    show(el.pause, false); paused = false; G.state = 'menu'; show(el.menu, true);
-  });
+  /* every route back to the workshop goes through here */
+  function goHome() {
+    show(el.pause, false);
+    show(el.over, false);
+    paused = false;
+    G.state = 'menu';
+    show(el.menu, true);
+  }
+  document.getElementById('btnQuit').addEventListener('click', goHome);
+  document.getElementById('btnMenu').addEventListener('click', goHome);
+  document.getElementById('btnHome').addEventListener('click', goHome);
   document.getElementById('btnAgain').addEventListener('click', () => {
     show(el.over, false); startMatch();
-  });
-  document.getElementById('btnMenu').addEventListener('click', () => {
-    show(el.over, false); G.state = 'menu'; show(el.menu, true);
   });
 
   function bindGroup(id, attr, apply) {

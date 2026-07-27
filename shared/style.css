@@ -189,6 +189,13 @@ kbd {
 }
 .ctl-card .lbl { font-size: 11px; letter-spacing: .12em; color: var(--ink-dim); text-transform: uppercase; }
 
+/* always-available way out of a match, without covering the court */
+.controls .home {
+  padding: 6px 18px;
+  font-size: 10.5px;
+  letter-spacing: .18em;
+}
+
 /* ============================================================
    Overlays (menu / pause / game over)
    ============================================================ */
@@ -281,10 +288,32 @@ kbd {
   border-color: #5b4416;
   box-shadow: inset 0 1px 0 rgba(255,220,150,.16), 0 4px 0 #100b06, 0 7px 12px rgba(0,0,0,.6);
 }
+/* --- toggle groups ---
+   The picked option is live brass; every unpicked one is cold, dead metal.
+   These win over .btn / .btn.ghost so a group reads the same either way. */
 .btn[aria-pressed="true"] {
   background: linear-gradient(180deg, #ffe9b0 0%, #e0b74a 45%, #b98d1f 100%);
   color: #1d1304;
-  box-shadow: inset 0 0 12px rgba(120,70,0,.5), 0 2px 0 #33240a;
+  box-shadow:
+    inset 0 0 12px rgba(120,70,0,.5),
+    0 2px 0 #33240a,
+    0 0 16px rgba(255,190,80,.30);
+}
+.opt-group .btn[aria-pressed="false"] {
+  color: #7b7266;
+  background: linear-gradient(180deg, #38352f 0%, #292723 55%, #1b1a17 100%);
+  border-color: #423c35;
+  text-shadow: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.05),
+    0 4px 0 #121110,
+    0 6px 10px rgba(0,0,0,.5);
+}
+.opt-group .btn[aria-pressed="false"]:hover {
+  filter: none;
+  color: #cdbb94;
+  border-color: #6d5623;
+  background: linear-gradient(180deg, #46413a 0%, #332f29 55%, #23211d 100%);
 }
 
 /* small toggle groups inside the panel */
