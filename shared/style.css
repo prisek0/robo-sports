@@ -189,7 +189,13 @@ kbd {
 }
 .ctl-card .lbl { font-size: 11px; letter-spacing: .12em; color: var(--ink-dim); text-transform: uppercase; }
 
-/* always-available way out of a match, without covering the court */
+/* always-available route back to the game-selection hub, without covering
+   the court. It is an <a>, so it also middle-clicks into a new tab. */
+a.btn {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
 .controls .home {
   padding: 6px 18px;
   font-size: 10.5px;

@@ -1271,7 +1271,6 @@
   }
   document.getElementById('btnQuit').addEventListener('click', goHome);
   document.getElementById('btnMenu').addEventListener('click', goHome);
-  document.getElementById('btnHome').addEventListener('click', goHome);
   document.getElementById('btnAgain').addEventListener('click', () => { show(el.over, false); startMatch(); });
 
   function bindGroup(id, attr, apply) {
