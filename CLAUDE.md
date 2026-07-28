@@ -22,8 +22,9 @@ If you need a server (some tooling refuses `file://`):
 ## Testing
 
 ```
-node tests/run.js        # everything
+node tests/run.js        # everything (~75 s)
 node tests/physics.js    # Rust & Rally fidelity + rules
+node tests/shooting.js   # Scrapyard Slam shot curve + possession (~40 s, samples ~800 shots)
 node tests/ui.js         # menu/DOM wiring, checked against the real HTML
 node tests/smoke.js      # ~11 simulated minutes per game, catches runtime errors
 ```
@@ -79,33 +80,88 @@ The user considers this game finished. Treat changes here as high-risk.
 
 ## Scrapyard Slam — the current work area
 
-Basket Random's shooting over conventional platformer movement. Shooting is an
-arm swing: the orb launches on the **arm tip's actual velocity** at contact, with
-the swing eased *in* so the tip is fastest at release. Facing locks during a
-swing. Every round re-rolls gravity, orb, court and chassis.
+Carry-and-release shooting over conventional platformer movement. Every round
+re-rolls gravity, orb, court and chassis. **First to 11** — roughly 80–110 s a
+match against the CPU, scaling with the governor setting.
 
 Unlike Rust & Rally there is **no reference implementation** — Basket Random is
 closed-source, so the feel here is original design, not a port. Nothing is
-"locked"; tune freely.
+"locked"; tune freely, but `tests/shooting.js` asserts the spec below, so move
+the numbers there in the same commit.
 
-Known rough edges, roughly in priority order:
+### The shot
 
-1. **Scoring rate is low.** Rounds often expire on the 32 s shot clock instead of
-   ending in a goal (6 of 11 rounds in the last smoke run). Either the AI, the
-   shot, or the hoop geometry needs work.
-2. **The CPU is crude.** It targets `ball.x + 30`, and swings whenever the orb is
-   within arm reach and it happens to be facing its target hoop. It does not aim,
-   lead, or plan. `DIFFS` only varies reaction time, error and swing probability.
-3. **Three overlapping band-aids keep the orb alive**: an anti-stall re-drop
-   (speed < 46 for 3.2 s), a jam detector (moved < 70 px in 6 s), and the shot
-   clock. They exist because an orb can come to rest on a girder or be pinned in
-   a corner by a player. A real fix (sloped obstacle tops, non-resting surfaces)
-   would let all three go.
-4. **Trampoline courts** set `onGround = true` while the player is moving upward,
-   so walk animation and ground friction apply mid-bounce.
-5. **No fidelity tests** — only smoke coverage. If you tune the shot or the AI,
-   add measurable assertions to `tests/` the way `physics.js` does, otherwise
-   regressions are invisible.
+`S` / `↓` is one verb — a swept swat that grabs a loose orb, strips a carrier,
+or bats at a shot. Reach is measured from the **shoulder**, because the hand
+traces a circle of radius `arm` while it sweeps: `arm + 3r` to pick up (97 px
+for the standard orb), `arm + 2r` to steal (76 px). A carrier who is **airborne
+cannot be stripped** — a committed jump is safe. There is deliberately **no
+steal cooldown**.
+
+`W` / `↑` jumps and releases. Jump height is **fixed** — releasing does not cut
+the rise, because the release is the shot trigger and the shot is graded on how
+far up that arc you were. Release height as a fraction of the arc's apex:
+
+- ≥ **98%** → 100%; from there straight down to 0% at the **50%** floor
+- below the floor the orb stays in your hand — the floor and the zero are one rule
+- the curve applies identically going up and coming down
+- multiplied by a distance penalty: 1.0 within 260 px of the ring, tapering to
+  0.60 at 800 px
+- a defender's chassis in the arc kills the shot outright, so 100% means
+  *uncontested* 100%
+
+An orb dawdles near the apex, so the certain band is far wider in time than in
+height: the top 2% is **0.12 s** (~7 frames) at standard gravity and 0.09 s in
+the fastest roll the dice produce. That is the number to reason about when
+tuning `SHOT_PERFECT` — 60 Hz input sampling is the floor. Because the band is
+a fraction of *each* arc, a shallow trampoline bounce gives a tighter window
+(~4 frames), not a free shot.
+
+While a shot is live, gravity is scaled by `SHOT_GRAV` (0.60). The arc is
+solved to land on a point, so it cannot be slowed by scaling velocity — but
+under weaker gravity the parabola through the same apex to the same target is
+pixel-identical, just traversed 1.29× slower. Everything that models the
+flight (`solveArc`, `traceDrop`, `arcPoints`, `physicsStep`) must use the same
+scaled value or the guarantee breaks.
+
+Outcome is rolled at release, then flown honestly. A **swish** (final chance
+exactly 1.0) ignores the ring so an earned shot is never decided by a rim clip.
+A **make** below 1.0 is aimed off-centre and shepherded onto the ring centre
+over the last 74 px with a soft rim, so it rattles but still drops. A **miss**
+is aimed on the *court* side of the near rim end and is fully elastic. Stated
+percentage equals measured percentage.
+
+Things that were load-bearing and are easy to break again:
+
+- `solveArc` steps the **orb's own integrator**, drag included. A closed-form
+  parabola lands GAS BLADDER shots ~80 px short.
+- The launch point is outside the chassis on the hoop's side, **not** the hand.
+  Facing is cosmetic for shooting, so releasing from the hand let a unit facing
+  away bat its own shot back.
+- A shooter cannot re-grab or body-block their own live shot.
+- Rims are not solids; `pathClear` checks them by hand.
+- **A chassis never leaves the yard.** `movePlayer` only treats a solid as a
+  floor when the feet actually crossed *that* surface during the step, falls
+  back to `ejectMinimal` for side overlaps, and then clamps to the yard. The
+  wall solids span y −400..660, so the old "any overlap is a floor" rule
+  snapped units to y = −400 and they vanished, leaving only the shadow (drawn
+  at a fixed `GROUND + 6`). Nothing but `tests/shooting.js`'s containment soak
+  can see that — the stub canvas draws nothing.
+
+Known rough edges:
+
+1. **Two band-aids still keep the orb alive**: the anti-stall re-drop (speed
+   < 46 for 3.2 s) and the jam detector (moved < 70 px in 6 s). The shot clock
+   is gone. An orb can still settle on top of the ceiling beam, which no
+   chassis can reach.
+2. **The CPU only walks and shoots.** It fetches, carries to a shooting spot,
+   jumps and releases; `hErr` (release drift) is what separates the governor
+   settings — measured conversion 44% / 86% / 99%, even across all five courts.
+   `hErr` is calibrated against the width of the certain band, so it has to be
+   retuned whenever `SHOT_PERFECT` moves. It does not feint, screen, or defend
+   deliberately beyond swiping at what is near it.
+3. Trampoline bounces re-roll the AI's release target every bounce, so it can
+   hold the orb through several bounces before committing.
 
 `window.__GAME` exposes live state in both games for console debugging.
 

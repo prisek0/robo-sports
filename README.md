@@ -18,8 +18,9 @@ CLAUDE.md             working notes and constraints for contributors
 ```
 
 Run the checks with `node tests/run.js` (no install required). They boot each
-game against a stubbed canvas and DOM, play ~11 simulated minutes, and assert
-the Blobby physics still hit the original's exact design targets.
+game against a stubbed canvas and DOM, play ~11 simulated minutes, assert the
+Blobby physics still hit the original's exact design targets, and fire ~700
+simulated shots to confirm Scrapyard Slam's odds are the odds it advertises.
 
 ---
 
@@ -81,27 +82,33 @@ separate, counts four "touches" in a fraction of a second.
 
 Basket Random's shooting, with proper platformer movement as requested.
 
-**Shooting** is the arm swing: tapping shoot whips a hinged iron arm from cocked
-low-and-back through to high-and-forward over 0.2 s. The orb is launched by the
-*arm tip's actual velocity* at the moment of contact, so timing and body position
-decide the shot — there is no aim cursor and no charge meter. The swing eases
-**in**, so the arm is moving fastest exactly at release. Facing locks for the
-duration of a swing, so a shot goes where you were aiming when you started it.
+**Possession** is a swipe. `S` sweeps the iron arm to scoop up a loose orb, or to
+strip it out of the other unit's hands — but only while they are standing. Once
+they leave the ground the orb is theirs until they let it go, so a jump is a
+commitment on both sides.
+
+**Shooting** is a held jump. Carry the orb up and release the jump key: the
+higher you are on the arc when you let go, the surer the shot. The top of the
+arc is a **certainty** and drops clean through the chain; a little lower and it
+is a gamble that rattles around the ring before deciding; below halfway you
+simply keep hold of it. A gauge beside your unit shows the bands as you rise,
+and there is a blip the moment you enter the certain one. Shoot from your own
+half and the odds fall away — and a chassis parked in the arc rejects the whole
+thing regardless.
 
 **Movement** is a conventional 2D platformer: acceleration and friction, coyote
-time, jump buffering, and variable jump height (release early to hop, hold to
-soar).
+time and jump buffering. Jump height is *fixed* — the jump key has a second job.
 
 **The "Random":** every round re-rolls four dice, announced on the brass plates —
 gravity (lunar / standard / heavy), the orb (bearing ball, boiler sphere, rubber,
-lead shot, gas bladder…), the court (open yard, gantry, scrap pillars, low
-girder, canvas floor, frost sheet, catwalks) and the chassis (stilt legs, squat
-drum, spring heels…). Hoop heights move every round too.
+lead shot, gas bladder…), the court (open yard, scrap pillars, low girder,
+canvas floor, frost sheet) and the chassis (stilt legs, squat drum, spring
+heels…). Hoop heights move every round too.
 
 **Scoring:** each unit scores in the *far* hoop — Rusty attacks the right ring,
-Oxy the left. Deflections count. First to **5**.
+Oxy the left. Deflections count. First to **11**.
 
-| | Move | Jump | Swing |
+| | Move | Jump — release to shoot | Grab / steal |
 |---|---|---|---|
 | Rusty Unit | `A` `D` | `W` | `S` |
 | Oxy Unit | `←` `→` | `↑` | `↓` |

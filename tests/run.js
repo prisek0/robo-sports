@@ -8,12 +8,14 @@ const suites = [
   ['syntax', null],
   ['ui', 'ui.js'],
   ['physics', 'physics.js'],
+  ['shooting', 'shooting.js'],
   ['smoke', 'smoke.js']
 ];
 
 const sources = [
   'shared/art.js', 'blobby/game.js', 'basket/game.js',
-  'tests/lib/stub-dom.js', 'tests/ui.js', 'tests/physics.js', 'tests/smoke.js'
+  'tests/lib/stub-dom.js', 'tests/ui.js', 'tests/physics.js',
+  'tests/shooting.js', 'tests/smoke.js'
 ];
 
 let failed = [];

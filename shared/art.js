@@ -646,6 +646,7 @@
     constructor(target) {
       this.down = Object.create(null);
       this.pressed = Object.create(null);
+      this.released = Object.create(null);
       this.anyPressed = false;
       const t = target || global;
       t.addEventListener('keydown', (e) => {
@@ -656,13 +657,22 @@
         this.anyPressed = true;
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].indexOf(c) >= 0) e.preventDefault();
       });
-      t.addEventListener('keyup', (e) => { this.down[e.code] = false; });
+      t.addEventListener('keyup', (e) => {
+        if (this.down[e.code]) this.released[e.code] = true;
+        this.down[e.code] = false;
+      });
       global.addEventListener('blur', () => { this.down = Object.create(null); });
     }
     isDown(c) { return !!this.down[c]; }
     /** true once per physical press */
     hit(c) { return !!this.pressed[c]; }
-    endFrame() { this.pressed = Object.create(null); this.anyPressed = false; }
+    /** true once per physical release — Scrapyard Slam shoots on the up-edge */
+    lifted(c) { return !!this.released[c]; }
+    endFrame() {
+      this.pressed = Object.create(null);
+      this.released = Object.create(null);
+      this.anyPressed = false;
+    }
   }
 
   /* ============================================================

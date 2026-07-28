@@ -22,6 +22,11 @@ const ROOT = path.resolve(__dirname, '..', '..');
    inert objects, so drawing code runs end to end without a canvas. */
 function makeCtx() {
   const grad = { addColorStop() {} };
+  /* One shared no-op rather than a fresh closure on every property read. A
+     frame touches the context hundreds of times, so this avoids a lot of
+     pointless allocation — though measuring it showed the headless clock is
+     bound by the drawing code's own maths, not by this. */
+  const noop = () => undefined;
   const base = {
     canvas: { width: 0, height: 0 },
     createLinearGradient: () => grad,
@@ -30,7 +35,7 @@ function makeCtx() {
     measureText: (s) => ({ width: String(s).length * 7 })
   };
   return new Proxy(base, {
-    get: (t, p) => (p in t ? t[p] : () => undefined),
+    get: (t, p) => (p in t ? t[p] : noop),
     set: (t, p, v) => { t[p] = v; return true; }
   });
 }
