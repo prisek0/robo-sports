@@ -64,7 +64,40 @@ for (const page of ['index.html', 'blobby/index.html', 'basket/index.html']) {
        `${page}: favicon decodes to a complete SVG document`);
     ok(!/\shref=|xlink:href|url\((?!%23|#)/.test(decoded),
        `${page}: favicon pulls in nothing external`);
+    ok(/type="image\/svg\+xml"/.test(icon[0]),
+       `${page}: favicon declares its type, so fallbacks are skipped`);
   }
+
+  /* The raster fallbacks are relative, like every other path here — a
+     root-relative /favicon.ico would break both file:// and any subpath
+     deployment. They must also actually exist and be real images. */
+  const dir = path.dirname(path.join(ROOT, page));
+  for (const [rel, magic] of [['alternate icon', Buffer.from([0, 0, 1, 0])],
+                              ['apple-touch-icon', Buffer.from([0x89, 0x50, 0x4e, 0x47])]]) {
+    const m = html.match(new RegExp(`<link rel="${rel}"[^>]*href="([^"]*)"`));
+    ok(!!m, `${page}: has a ${rel}`);
+    if (!m) continue;
+    ok(!m[1].startsWith('/') && !/^https?:/.test(m[1]),
+       `${page}: ${rel} path is relative (${m[1]})`);
+    const file = path.resolve(dir, m[1]);
+    ok(fs.existsSync(file), `${page}: ${rel} resolves to a real file`);
+    if (fs.existsSync(file)) {
+      ok(fs.readFileSync(file).subarray(0, 4).equals(magic),
+         `${page}: ${rel} is a valid ${rel === 'alternate icon' ? 'ICO' : 'PNG'}`);
+    }
+  }
+
+  /* Link previews. og:image has to be absolute or unfurlers ignore it —
+     that is the one place a relative path is wrong. */
+  for (const prop of ['og:type', 'og:title', 'og:description', 'og:url', 'og:image']) {
+    ok(new RegExp(`property="${prop}" content="[^"]+"`).test(html),
+       `${page}: declares ${prop}`);
+  }
+  const ogImage = html.match(/property="og:image" content="([^"]+)"/);
+  ok(ogImage && /^https:\/\//.test(ogImage[1]),
+     `${page}: og:image is an absolute URL`);
+  ok(fs.existsSync(path.join(ROOT, 'og-image.png')),
+     `${page}: the og:image file exists in the repo`);
 }
 
 /* the grey-unpicked rule has to out-specify .btn and .btn.ghost */

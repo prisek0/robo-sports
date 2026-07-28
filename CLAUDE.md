@@ -38,8 +38,23 @@ that second gap is why `tests/ui.js` parses the actual HTML.
 
 - **Plain `<script>` only — never ES modules.** `type="module"` fails under
   `file://` (CORS), and running straight off disk is a requirement.
-- **No external assets.** No CDN, no web fonts, no image files. Everything is
-  drawn procedurally to canvas or styled in CSS. Fonts are system stacks.
+- **No external assets.** No CDN, no web fonts, no image files *that the games
+  load*. Everything on screen is drawn procedurally to canvas or styled in CSS,
+  fonts are system stacks, and both games run off `file://` with nothing to
+  fetch.
+
+  The one carve-out is site metadata for other people's software:
+  `favicon.ico`, `apple-touch-icon.png` and `og-image.png` at the repo root.
+  Link unfurlers (iMessage, Slack) need a real fetchable URL and cannot read a
+  data URI, and browsers predating SVG favicons need a raster fallback. No game
+  code references them, so removing them changes nothing about how the games
+  run. They are **generated, not drawn**: `node tools/make-icons.js` renders
+  them from the same orb maths `shared/art.js` uses, with a hand-rolled PNG
+  encoder over Node's `zlib`, so there is still no asset pipeline and nothing
+  to install. Regenerate rather than editing them by hand.
+
+  The primary favicon is still an inline SVG data URI in each `<head>`, which
+  fetches nothing and so keeps working from disk.
 - **Don't touch Rust & Rally's physics constants.** They are ported verbatim
   from [blobbyvolley2](https://github.com/danielknobe/blobbyvolley2)'s
   `GameConstants.h`, and derived ones keep the original's *formula* rather than
