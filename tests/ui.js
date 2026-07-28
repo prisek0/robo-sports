@@ -47,6 +47,26 @@ for (const game of ['blobby', 'basket']) {
   ok(!/getElementById\('btnHome'\)/.test(js), `${game}: no stale btnHome lookup in the JS`);
 }
 
+/* Every page carries a favicon, and it must be inline. "No external assets"
+   is a hard constraint (CLAUDE.md) — the whole project has to run off
+   file:// with nothing to fetch — so an .ico or .png here would break the
+   rule quietly, and only on someone else's machine. */
+for (const page of ['index.html', 'blobby/index.html', 'basket/index.html']) {
+  const html = fs.readFileSync(path.join(ROOT, page), 'utf8');
+  const icon = html.match(/<link[^>]*rel="icon"[^>]*href="([^"]*)"/);
+  ok(!!icon, `${page}: has a favicon`);
+  if (icon) {
+    ok(icon[1].startsWith('data:image/svg+xml,'),
+       `${page}: favicon is an inline SVG data URI, not a fetched file`);
+    let decoded = '';
+    try { decoded = decodeURIComponent(icon[1].slice('data:image/svg+xml,'.length)); } catch (e) { /* below */ }
+    ok(/^<svg[\s\S]*<\/svg>$/.test(decoded),
+       `${page}: favicon decodes to a complete SVG document`);
+    ok(!/\shref=|xlink:href|url\((?!%23|#)/.test(decoded),
+       `${page}: favicon pulls in nothing external`);
+  }
+}
+
 /* the grey-unpicked rule has to out-specify .btn and .btn.ghost */
 const css = fs.readFileSync(path.join(ROOT, 'shared/style.css'), 'utf8');
 ok(/\.opt-group \.btn\[aria-pressed="false"\]\s*\{/.test(css),
